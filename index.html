@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<head>
+  <title>GitHub Activity Feed</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 30px;
+      background-color: #f4f4f4;
+    }
+    h1 {
+      color: #333;
+    }
+    .log {
+      background-color: white;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-left: 5px solid #4caf50;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <h1>📦 GitHub Webhook Activity</h1>
+  <div id="logs">Loading logs...</div>
+
+  <script>
+    async function fetchLogs() {
+      try {
+        const res = await fetch("/get-events");
+        const data = await res.json();
+        const logsDiv = document.getElementById("logs");
+        logsDiv.innerHTML = "";
+
+        if (data.length === 0) {
+          logsDiv.innerHTML = "<p>No activity yet.</p>";
+        }
+
+        data.forEach(event => {
+          let msg = "";
+          if (event.action === "push") {
+            msg = `${event.author} pushed to ${event.to_branch} on ${event.timestamp}`;
+          } else if (event.action === "pull_request") {
+            msg = `${event.author} submitted a pull request from ${event.from_branch} to ${event.to_branch} on ${event.timestamp}`;
+          }
+
+          const log = document.createElement("div");
+          log.className = "log";
+          log.textContent = msg;
+          logsDiv.appendChild(log);
+        });
+      } catch (err) {
+        console.error("Error fetching logs:", err);
+        document.getElementById("logs").innerText = "Failed to load logs.";
+      }
+    }
+
+    fetchLogs();
+    setInterval(fetchLogs, 15000); // auto-refresh every 15 sec
+  </script>
+</body>
+</html>
